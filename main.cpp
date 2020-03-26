@@ -77,8 +77,9 @@ std::pair<std::vector<int>, double> tsp_bruteforce(std::vector<std::vector<doubl
 }
 
 sf::Vector2f get_rand_point()
+{
     return sf::Vector2f(rand() % 900, rand() % 500);
-
+}
 int main()
 {
     sf::ContextSettings settings;
