@@ -1,6 +1,6 @@
 #include <SFML/Graphics.hpp>
-#include "Globals.h"
-#include "Graphics.h"
+#include "Header files/Graphics.h"
+#include "Header files/Globals.h"
 #include <chrono>
 sf::Vector2f get_rand_point()
 {
@@ -11,8 +11,6 @@ int main()
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
     sf::RenderWindow window(sf::VideoMode(1000, 562), "SFML works!", sf::Style::Default, settings);
-    
-    Graphics g = Graphics(&window);
     srand(time(0));
     int n = 10;
     auto nodes = std::vector<sf::Vector2f>(n);
@@ -23,7 +21,8 @@ int main()
         order[i] = i;
     }
     order.push_back(0);
-    g.update_graph(nodes, order);
+    Graphics g = Graphics(&window,nodes);
+    g.update_graph(order);
     while (window.isOpen())
     {
         sf::Event event;
@@ -34,7 +33,6 @@ int main()
         }
         window.clear(Globals::window_background);
         g.draw_graph();
-        //g.draw_line(sf::Vector2f(30, 30), sf::Vector2f(500, 300), 5);
         window.display();
     }
 
