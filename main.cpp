@@ -32,7 +32,6 @@ std::vector<std::vector<double>> convert_points_to_graph(std::vector<sf::Vector2
 				graph[i][j] = -1;
 		}
 	}
-
 	return graph;
 }
 
@@ -78,9 +77,7 @@ std::pair<std::vector<int>, double> tsp_bruteforce(std::vector<std::vector<doubl
 }
 
 sf::Vector2f get_rand_point()
-{
     return sf::Vector2f(rand() % 900, rand() % 500);
-}
 
 int main()
 {
@@ -93,25 +90,25 @@ int main()
     std::vector<int> order = std::vector<int>(n);
     for (size_t i = 0; i < n; i++)
     {
-		// Generating random points
-        nodes[i] = get_rand_point();
+      // Generating random points
+      nodes[i] = get_rand_point();
 
-		// Point input via console
-		/*std::cin >> nodes[i].x;
-		std::cin >> nodes[i].y;*/
+      // Point input via console
+      /*std::cin >> nodes[i].x;
+      std::cin >> nodes[i].y;*/
 
-		order[i] = i;
+      order[i] = i;
     }
     order.push_back(0);
     Graphics g = Graphics(&window,nodes);
     g.update_graph(order);
 
-	// Modifies order such that it is optimal using brute force algorithm
-	auto optimal_order_and_distance = tsp_bruteforce(convert_points_to_graph(nodes));
-	order = optimal_order_and_distance.first;
-	double distance = optimal_order_and_distance.second;
-	g.update_graph(order);
-
+    // Modifies order such that it is optimal using brute force algorithm
+    auto optimal_order_and_distance = tsp_bruteforce(convert_points_to_graph(nodes));
+    order = optimal_order_and_distance.first;
+    double distance = optimal_order_and_distance.second;
+    g.update_graph(order);
+  
     while (window.isOpen())
     {
         sf::Event event;
