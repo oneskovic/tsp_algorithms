@@ -9,8 +9,14 @@ void Graphics::draw_graph()
 {
 	//Draw all edges
 	for (size_t i = 1; i < points.size(); i++)
-		draw_line(points[i - 1], points[i], edge_thickness);
-	draw_line(points[points.size() - 1], points[0], edge_thickness);
+	{
+		int point1_index = points_order[i - 1];
+		int point2_index = points_order[i];
+		draw_line(points[point1_index], points[point2_index], edge_thickness);
+	}
+	int first_point_index = points_order[0];
+	int last_point_index = points_order[points_order.size() - 1];
+	draw_line(points[last_point_index], points[first_point_index], edge_thickness);
 	//Draw all nodes
 	for (size_t i = 0; i < points.size(); i++)
 	{
