@@ -103,42 +103,46 @@ double temp_reduction_constant,double probability_constant)
 
 	while (temperature > 0.1)
 	{
-		// Update best solution so far
-		if (length_current < minimal_total_weight)
+		int number_of_changes = 100 * permutation_length;
+		for (int i = 0; i < number_of_changes; i++)
 		{
-			minimal_total_weight = length_current;
-			solution = order_of_visiting;
-		}
+			// Choose one neighboring state at random
+			int rand_index1 = rand() % permutation_length;
+			int rand_index2 = rand() % permutation_length;
 
-		// Choose one neighboring state at random
-		int rand_index1 = rand() % permutation_length;
-		int rand_index2 = rand() % permutation_length;
+			//Swap two adjacent elements, if rand_index is last element, swap first and last
+			std::swap(order_of_visiting[rand_index1], order_of_visiting[(rand_index2) % permutation_length]);
+			auto neighboring_state = order_of_visiting;
+			std::swap(order_of_visiting[rand_index1], order_of_visiting[(rand_index2) % permutation_length]);
 
-		//Swap two adjacent elements, if rand_index is last element, swap first and last
-		std::swap(order_of_visiting[rand_index1], order_of_visiting[(rand_index2) % permutation_length]);
-		auto neighboring_state = order_of_visiting;
-		std::swap(order_of_visiting[rand_index1], order_of_visiting[(rand_index2) % permutation_length]);
-		
-		// Choose random number between 0 and 1
-		double rand_double = rand() / (RAND_MAX * 1.0);
-		// Evaluate probability function of acceptance
-		double length_new = length_of_path(neighboring_state);
-		double length_difference = length_current - length_new;
-		double probability_of_acceptance;
-		if (length_new > length_current)
-			probability_of_acceptance = std::exp((length_difference) / (probability_constant * temperature));
-		else
-			probability_of_acceptance = 1;
+			// Choose random number between 0 and 1
+			double rand_double = rand() / (RAND_MAX * 1.0);
+			// Evaluate probability function of acceptance
+			double length_new = length_of_path(neighboring_state);
+			double length_difference = length_current - length_new;
+			double probability_of_acceptance;
+			if (length_new > length_current)
+				probability_of_acceptance = std::exp((length_difference) / (probability_constant * temperature));
+			else
+				probability_of_acceptance = 1;
 
-		// Draw current order
-		graphics->update_graph(order_of_visiting, solution);
-		std::this_thread::sleep_for(std::chrono::milliseconds(Globals::draw_delay));
+			// Change state to neighboring state if probability is greater than the chosen random number
+			if (probability_of_acceptance > rand_double)
+			{
+				order_of_visiting = neighboring_state;
+				length_current = length_of_path(order_of_visiting);
+			}
 
-		// Change state to neighboring state if probability is greater than the chosen random number
-		if (probability_of_acceptance > rand_double)
-		{
-			order_of_visiting = neighboring_state;
-			length_current = length_of_path(order_of_visiting);
+			// Update best solution so far
+			if (length_current < minimal_total_weight)
+			{
+				minimal_total_weight = length_current;
+				solution = order_of_visiting;
+			}
+
+			// Draw current order
+			graphics->update_graph(order_of_visiting, solution);
+			std::this_thread::sleep_for(std::chrono::milliseconds(Globals::draw_delay));
 		}
 
 		// Reduce temperature
