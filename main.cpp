@@ -17,7 +17,7 @@ int main()
     settings.antialiasingLevel = 8;
     sf::RenderWindow window(sf::VideoMode(Globals::window_width, Globals::window_height), "KURAC MOLIM TE <3", sf::Style::Default, settings);
     srand(time(0));
-    int n = 6;
+    int n = 10;
     auto points = std::vector<sf::Vector2f>(n);
     std::vector<int> order = std::vector<int>(n);
     for (size_t i = 0; i < n; i++)
@@ -32,7 +32,7 @@ int main()
     order.push_back(0);
     Graphics g = Graphics(&window,points);
     Solver primary_solver = Solver(&g, points);
-    primary_solver.solve_bruteforce();
+    primary_solver.solve_simulated_annealing();
     while (window.isOpen())
     {
         sf::Event event;

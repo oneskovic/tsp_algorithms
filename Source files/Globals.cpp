@@ -6,6 +6,6 @@ sf::Color Globals::optimal_edge_color = sf::Color(0, 255, 0);
 sf::Color Globals::optimal_node_color = sf::Color(255, 255, 255);
 int Globals::window_width = 1000;
 int Globals::window_height = 562;
-int Globals::draw_delay = 500;
+int Globals::draw_delay = 50;
 double Globals::edge_thickness = 2;
 double Globals::node_radius = 5.5;
