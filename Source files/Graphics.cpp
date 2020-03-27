@@ -1,8 +1,21 @@
 #include "../Header files/Graphics.h"
 
-void Graphics::update_graph(std::vector<int> points_order)
+void Graphics::update_graph(std::vector<int> points_order, std::vector<int> optimal_order)
 {
-	this->points_order = points_order;
+	render_window->clear(Globals::window_background);
+	this->points_order = std::vector<int>(points_order.begin(),points_order.end());
+	auto points_left = std::vector<sf::Vector2f>(points.begin(), points.end());
+	edge_color = Globals::edge_color;
+	node_color = Globals::node_color;
+	draw_graph();
+	for (size_t i = 0; i < points.size(); i++)
+		points[i].x += Globals::window_width / 2;
+	this->points_order = std::vector<int>(optimal_order.begin(), optimal_order.end());
+	edge_color = Globals::optimal_edge_color;
+	node_color = Globals::optimal_node_color;
+	draw_graph();
+	points = std::vector<sf::Vector2f>(points_left.begin(), points_left.end());
+	render_window->display();
 }
 
 void Graphics::draw_graph()
@@ -22,7 +35,7 @@ void Graphics::draw_graph()
 	{
 		sf::CircleShape node = sf::CircleShape(node_radius);
 		node.move(points[i].x - node_radius, points[i].y - node_radius);
-		node.setFillColor(Globals::node_color);
+		node.setFillColor(node_color);
 		(*render_window).draw(node);
 	}
 }
@@ -48,7 +61,7 @@ void Graphics::draw_line(sf::Vector2f point1, sf::Vector2f point2, double thickn
 	line_rectangle.setPoint(1, point1 + half_side);
 	line_rectangle.setPoint(2, point2 + half_side);
 	line_rectangle.setPoint(3, point2 - half_side);
-	line_rectangle.setFillColor(Globals::edge_color);
+	line_rectangle.setFillColor(edge_color);
 	(*render_window).draw(line_rectangle);
 }
 
@@ -58,4 +71,6 @@ Graphics::Graphics(sf::RenderWindow* window, std::vector<sf::Vector2f> points)
 	render_window = window;
 	edge_thickness = Globals::edge_thickness;
 	node_radius = Globals::node_radius;
+	node_color = Globals::node_color;
+	edge_color = Globals::edge_color;
 }
