@@ -17,7 +17,7 @@ int main()
     settings.antialiasingLevel = 8;
     sf::RenderWindow window(sf::VideoMode(Globals::window_width, Globals::window_height), "KURAC MOLIM TE <3", sf::Style::Default, settings);
     srand(time(0));
-    int n = 40;
+    int n = 50;
     auto points = std::vector<sf::Vector2f>(n);
     std::vector<int> order = std::vector<int>(n);
     for (size_t i = 0; i < n; i++)
@@ -32,7 +32,7 @@ int main()
     order.push_back(0);
     Graphics g = Graphics(&window,points);
     Solver primary_solver = Solver(&g, points);
-    auto order_and_distance = primary_solver.solve_simulated_annealing();
+    auto order_and_distance = /*primary_solver.solve_simulated_annealing()*/ primary_solver.solve_ant_colony_simulation(1, 3, 1, 0.3, 1000, 1000, 1);
     std::cout << "Best distance found: " << order_and_distance.second;
     while (window.isOpen())
     {
