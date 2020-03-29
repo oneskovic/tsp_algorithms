@@ -5,7 +5,7 @@
 class Graphics
 {
 public:
-	void update_graph(std::vector<int> points_order, std::vector<int> optimal_order);
+	void update_graph(std::vector<int> points_order, std::vector<int> optimal_order, bool diplay_soutions = false);
 	void draw_graph();
 	void draw_line(sf::Vector2f point1, sf::Vector2f point2, double thickness);
 	Graphics(sf::RenderWindow* window, std::vector<sf::Vector2f> points);

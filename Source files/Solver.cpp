@@ -1,4 +1,5 @@
 #include "..//Header files/Solver.h"
+
 std::vector<std::vector<double>> convert_points_to_graph(std::vector<sf::Vector2f> points)
 {
 	int n = points.size();
@@ -28,22 +29,26 @@ std::vector<std::vector<double>> convert_points_to_graph(std::vector<sf::Vector2
 	}
 	return graph;
 }
+
 Solver::Solver(Graphics* graphics, std::vector<sf::Vector2f> points)
 {
 	graph = convert_points_to_graph(points);
 	this->graphics = graphics;
 }
+
 Solver::Solver(Graphics* graphics, std::vector<std::vector<double>> graph)
 {
 	this->graph = graph;
 	this->graphics = graphics;
 }
+
 Solver::Solver(Graphics* primary_graphics, Graphics* secondary_graphics, std::vector<sf::Vector2f> points)
 {
 	graph = convert_points_to_graph(points);
 	this->graphics = graphics;
 	this->secondary_graphics = secondary_graphics;
 }
+
 std::pair<std::vector<int>, double> Solver::solve_bruteforce()
 {
 	int number_of_nodes = graph.size();
@@ -86,6 +91,7 @@ std::pair<std::vector<int>, double> Solver::solve_bruteforce()
 	auto order_and_distance = std::pair<std::vector<int>, int>(solution, minimal_total_weight);
 	return order_and_distance;
 }
+
 double Solver::length_of_path(std::vector<int> order)
 {
 	double path_length = 0;
@@ -94,6 +100,7 @@ double Solver::length_of_path(std::vector<int> order)
 		path_length += graph[order[i]][order[(i + 1) % no_nodes]];
 	return path_length;
 }
+
 std::pair<std::vector<int>, double> Solver::solve_simulated_annealing(double initial_temperature,
 double temp_reduction_constant,double probability_constant)
 {
@@ -107,43 +114,50 @@ double temp_reduction_constant,double probability_constant)
 	double temperature = initial_temperature;
 	std::vector<int> solution;
 
-	while (temperature > 0.1)
+	int changes_accepted;
+	do
 	{
 		int number_of_changes = 100 * permutation_length;
+		changes_accepted = 0;
 		for (int i = 0; i < number_of_changes; i++)
 		{
 			// Choose one neighboring state at random
 			int rand_index1 = rand() % permutation_length;
 			int rand_index2 = rand() % permutation_length;
 
-			//Swap two adjacent elements, if rand_index is last element, swap first and last
-			std::swap(order_of_visiting[rand_index1], order_of_visiting[(rand_index2) % permutation_length]);
-			auto neighboring_state = order_of_visiting;
-			std::swap(order_of_visiting[rand_index1], order_of_visiting[(rand_index2) % permutation_length]);
-
-			// Choose random number between 0 and 1
-			double rand_double = rand() / (RAND_MAX * 1.0);
-			// Evaluate probability function of acceptance
-			double length_new = length_of_path(neighboring_state);
-			double length_difference = length_current - length_new;
-			double probability_of_acceptance;
-			if (length_new > length_current)
-				probability_of_acceptance = std::exp((length_difference) / (probability_constant * temperature));
-			else
-				probability_of_acceptance = 1;
-
-			// Change state to neighboring state if probability is greater than the chosen random number
-			if (probability_of_acceptance > rand_double)
+			//Reject the neighboring state if it is the same as the current state
+			if (rand_index1 != rand_index2)
 			{
-				order_of_visiting = neighboring_state;
-				length_current = length_of_path(order_of_visiting);
-			}
+				//Swap two adjacent elements, if rand_index is last element, swap first and last
+				std::swap(order_of_visiting[rand_index1], order_of_visiting[(rand_index2)]);
+				auto neighboring_state = order_of_visiting;
+				std::swap(order_of_visiting[rand_index1], order_of_visiting[(rand_index2)]);
 
-			// Update best solution so far
-			if (length_current < minimal_total_weight)
-			{
-				minimal_total_weight = length_current;
-				solution = order_of_visiting;
+				// Choose random number between 0 and 1
+				double rand_double = rand() / (RAND_MAX * 1.0);
+				// Evaluate probability function of acceptance
+				double length_new = length_of_path(neighboring_state);
+				double length_difference = length_current - length_new;
+				double probability_of_acceptance;
+				if (length_new > length_current)
+					probability_of_acceptance = std::exp((length_difference) / (probability_constant * temperature));
+				else
+					probability_of_acceptance = 1;
+
+				// Change state to neighboring state if probability is greater than the chosen random number
+				if (probability_of_acceptance > rand_double)
+				{
+					changes_accepted++;
+					order_of_visiting = neighboring_state;
+					length_current = length_of_path(order_of_visiting);
+				}
+
+				// Update best solution so far
+				if (length_current < minimal_total_weight)
+				{
+					minimal_total_weight = length_current;
+					solution = order_of_visiting;
+				}
 			}
 
 			// Draw current order
@@ -153,11 +167,12 @@ double temp_reduction_constant,double probability_constant)
 
 		// Reduce temperature
 		temperature *= temp_reduction_constant;
-	}
+	} while (changes_accepted > 0);
 
 	auto order_and_distance = std::pair<std::vector<int>, int>(solution, minimal_total_weight);
 	return order_and_distance;
-}
+} 
+
 void Solver::update_pheromones(std::vector<std::vector<double>>* pheromones_graph, std::map<std::pair<int, int>, double>* edge_pheromone_map, double rho)
 {
 	int no_nodes = graph.size();
@@ -174,6 +189,7 @@ void Solver::update_pheromones(std::vector<std::vector<double>>* pheromones_grap
 		}
 	}
 }
+
 double Solver::total_pheromone_distance_product(std::vector<std::vector<double>>* pheromone_graph, int current_node, std::vector<bool>* visited_nodes, double alpha, double beta)
 {
 	double total_sum = 0;
@@ -197,6 +213,7 @@ double Solver::total_pheromone_distance_product(std::vector<std::vector<double>>
 	}*/
 	return total_sum;
 }
+
 /// <summary>
 /// 
 /// </summary>

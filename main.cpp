@@ -16,7 +16,9 @@ int main()
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
     sf::RenderWindow window(sf::VideoMode(Globals::window_width, Globals::window_height), "KURAC MOLIM TE <3", sf::Style::Default, settings);
-    srand(time(0));
+    //Point generation random seeding
+    srand(342);
+
     int n = 50;
     auto points = std::vector<sf::Vector2f>(n);
     std::vector<int> order = std::vector<int>(n);
@@ -30,10 +32,25 @@ int main()
       order[i] = i;
     }
     order.push_back(0);
+
     Graphics g = Graphics(&window,points);
+    //Solver random seeding
+    srand(time(0));
     Solver primary_solver = Solver(&g, points);
-    auto order_and_distance = /*primary_solver.solve_simulated_annealing()*/ primary_solver.solve_ant_colony_simulation(1, 3, 1, 0.3, 1000, 1000, 1);
-    std::cout << "Best distance found: " << order_and_distance.second;
+
+    std::pair<std::vector<int>, double> order_and_distance;
+    //Running ant colony
+    order_and_distance = primary_solver.solve_ant_colony_simulation();
+    auto ant_colony_solution = order_and_distance.first;
+    std::cout << "Best distance ant colony simulation found: " << order_and_distance.second << "\n";
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+    //Running simmulated annealing
+    order_and_distance = primary_solver.solve_simulated_annealing();
+    auto simulated_annealing_solution = order_and_distance.first;
+    std::cout << "Best distance simulated annealing found: " << order_and_distance.second << "\n";
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+    g.update_graph(ant_colony_solution, simulated_annealing_solution, true);
+
     while (window.isOpen())
     {
         sf::Event event;
@@ -43,6 +60,8 @@ int main()
                 window.close();
         }
     }
+
+    //Outdated drawing loop
     /*while (window.isOpen())
     {
         sf::Event event;

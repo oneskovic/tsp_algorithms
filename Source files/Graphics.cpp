@@ -1,12 +1,17 @@
 #include "../Header files/Graphics.h"
 
-void Graphics::update_graph(std::vector<int> points_order, std::vector<int> optimal_order)
+void Graphics::update_graph(std::vector<int> points_order, std::vector<int> optimal_order, bool diplay_soutions)
 {
 	render_window->clear(Globals::window_background);
 	this->points_order = std::vector<int>(points_order.begin(),points_order.end());
 	auto points_left = std::vector<sf::Vector2f>(points.begin(), points.end());
 	edge_color = Globals::edge_color;
 	node_color = Globals::node_color;
+	if (diplay_soutions)
+	{
+		edge_color = Globals::optimal_edge_color;
+		node_color = Globals::optimal_node_color;
+	}
 	draw_graph();
 	for (size_t i = 0; i < points.size(); i++)
 		points[i].x += Globals::window_width / 2;
