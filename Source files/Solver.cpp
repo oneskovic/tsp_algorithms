@@ -102,7 +102,7 @@ double Solver::length_of_path(std::vector<int> order)
 }
 
 std::pair<std::vector<int>, double> Solver::solve_simulated_annealing(double initial_temperature,
-double temp_reduction_constant,double probability_constant)
+double temp_reduction_constant,double probability_constant, int opt2_rounds)
 {
 	int permutation_length = graph.size();
 	std::vector<int> order_of_visiting(permutation_length);
@@ -117,7 +117,7 @@ double temp_reduction_constant,double probability_constant)
 	int changes_accepted;
 	do
 	{
-		int number_of_changes = 100 * permutation_length;
+		int number_of_changes = 10 * permutation_length;
 		changes_accepted = 0;
 		for (int i = 0; i < number_of_changes; i++)
 		{
@@ -133,30 +133,37 @@ double temp_reduction_constant,double probability_constant)
 				auto neighboring_state = order_of_visiting;
 				std::swap(order_of_visiting[rand_index1], order_of_visiting[(rand_index2)]);
 
+				//Perform 2-opt improvment on the neighbor
+				neighboring_state = optimize_genome_locally(neighboring_state, 2-opt2_rounds);
+
+				
 				// Choose random number between 0 and 1
 				double rand_double = rand() / (RAND_MAX * 1.0);
 				// Evaluate probability function of acceptance
 				double length_new = length_of_path(neighboring_state);
 				double length_difference = length_current - length_new;
-				double probability_of_acceptance;
-				if (length_new > length_current)
-					probability_of_acceptance = std::exp((length_difference) / (probability_constant * temperature));
-				else
-					probability_of_acceptance = 1;
-
-				// Change state to neighboring state if probability is greater than the chosen random number
-				if (probability_of_acceptance > rand_double)
+				if (length_difference != 0)
 				{
-					changes_accepted++;
-					order_of_visiting = neighboring_state;
-					length_current = length_of_path(order_of_visiting);
-				}
+					double probability_of_acceptance;
+					if (length_new > length_current)
+						probability_of_acceptance = std::exp((length_difference) / (probability_constant * temperature));
+					else
+						probability_of_acceptance = 1;
 
-				// Update best solution so far
-				if (length_current < minimal_total_weight)
-				{
-					minimal_total_weight = length_current;
-					solution = order_of_visiting;
+					// Change state to neighboring state if probability is greater than the chosen random number
+					if (probability_of_acceptance > rand_double)
+					{
+						changes_accepted++;
+						order_of_visiting = neighboring_state;
+						length_current = length_of_path(order_of_visiting);
+					}
+
+					// Update best solution so far
+					if (length_current < minimal_total_weight)
+					{
+						minimal_total_weight = length_current;
+						solution = order_of_visiting;
+					}
 				}
 			}
 
@@ -164,6 +171,8 @@ double temp_reduction_constant,double probability_constant)
 			graphics->update_graph(order_of_visiting, solution);
 			std::this_thread::sleep_for(std::chrono::milliseconds(Globals::draw_delay));
 		}
+
+		std::cout << "Tmperature: " << temperature << " Accepted changees: " << changes_accepted << " Lenght: " << minimal_total_weight << "\n";
 
 		// Reduce temperature
 		temperature *= temp_reduction_constant;
@@ -414,10 +423,6 @@ std::vector<int> crossover_parents(std::vector<int>* parent1, std::vector<int>* 
 	return child;
 }
 
-void Solver::mutate_genome(std::vector<int>* permutation)
-{
-
-}
 std::vector<int> opt2_swap(std::vector<int>* permutation, int i, int k)
 {
 	std::vector<int> new_permutation(permutation->size());
@@ -428,6 +433,7 @@ std::vector<int> opt2_swap(std::vector<int>* permutation, int i, int k)
 	std::copy(permutation->begin() + k + 1, permutation->end(), new_permutation.begin() + k + 1);
 	return new_permutation;
 }
+
 std::vector<int> Solver::optimize_genome_locally(std::vector<int> permutation, int rounds)
 {
 	for (size_t round = 0; round < rounds; round++)
