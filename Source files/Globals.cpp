@@ -9,3 +9,4 @@ int Globals::window_height = 562;
 int Globals::draw_delay = 0;
 double Globals::edge_thickness = 2;
 double Globals::node_radius = 5.5;
+std::mt19937 Globals::random_generator;
