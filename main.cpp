@@ -25,7 +25,7 @@ int main()
     //Point generation random seeding
     srand(342);
 
-    int n = 50;
+    int n = 80;
     auto points = std::vector<sf::Vector2f>(n);
     std::vector<int> order = std::vector<int>(n);
     for (size_t i = 0; i < n; i++)
@@ -49,17 +49,21 @@ int main()
     order_and_distance = primary_solver.solve_ant_colony_simulation();
     auto ant_colony_solution = order_and_distance.first;
     std::cout << "Best distance ant colony simulation found: " << order_and_distance.second << "\n";
-    std::this_thread::sleep_for(std::chrono::seconds(5));
+    std::this_thread::sleep_for(std::chrono::seconds(5));*/
+
     //Running simmulated annealing
     order_and_distance = primary_solver.solve_simulated_annealing();
     auto simulated_annealing_solution = order_and_distance.first;
     std::cout << "Best distance simulated annealing found: " << order_and_distance.second << "\n";
     std::this_thread::sleep_for(std::chrono::seconds(5));
-    g.update_graph(ant_colony_solution, simulated_annealing_solution, true);*/
 
+    //Running genetic algorithm
     order_and_distance = primary_solver.solve_genetic_algorithm();
     auto genetic_solution = order_and_distance.first;
     std::cout << "Best distance found by genetic algorithm: " << order_and_distance.second << "\n";
+    std::this_thread::sleep_for(std::chrono::seconds(5));
+
+    g.update_graph(simulated_annealing_solution, genetic_solution, true);
 
     while (window.isOpen())
     {
