@@ -4,11 +4,17 @@
 #include "Header files/Solver.h"
 #include <chrono>
 #include <iostream>
+#include <random>
 
 
 sf::Vector2f get_rand_point()
 {
 	return sf::Vector2f(rand() % Globals::window_width/2, rand() % Globals::window_height);
+}
+void seed_random(size_t seed = std::random_device()())
+{
+    Globals::random_generator = std::mt19937(seed);
+    srand(seed);
 }
 
 int main()
@@ -35,11 +41,11 @@ int main()
 
     Graphics g = Graphics(&window,points);
     //Solver random seeding
-    srand(time(0));
+    seed_random();
     Solver primary_solver = Solver(&g, points);
 
     std::pair<std::vector<int>, double> order_and_distance;
-    //Running ant colony
+    /*//Running ant colony
     order_and_distance = primary_solver.solve_ant_colony_simulation();
     auto ant_colony_solution = order_and_distance.first;
     std::cout << "Best distance ant colony simulation found: " << order_and_distance.second << "\n";
@@ -49,7 +55,11 @@ int main()
     auto simulated_annealing_solution = order_and_distance.first;
     std::cout << "Best distance simulated annealing found: " << order_and_distance.second << "\n";
     std::this_thread::sleep_for(std::chrono::seconds(5));
-    g.update_graph(ant_colony_solution, simulated_annealing_solution, true);
+    g.update_graph(ant_colony_solution, simulated_annealing_solution, true);*/
+
+    order_and_distance = primary_solver.solve_genetic_algorithm();
+    auto genetic_solution = order_and_distance.first;
+    std::cout << "Best distance found by genetic algorithm: " << order_and_distance.second << "\n";
 
     while (window.isOpen())
     {
@@ -60,20 +70,5 @@ int main()
                 window.close();
         }
     }
-
-    //Outdated drawing loop
-    /*while (window.isOpen())
-    {
-        sf::Event event;
-        while (window.pollEvent(event))
-        {
-            if (event.type == sf::Event::Closed)
-                window.close();
-        }
-        window.clear(Globals::window_background);
-        g.draw_graph();
-        window.display();
-    }*/
-
     return 0;
 }
