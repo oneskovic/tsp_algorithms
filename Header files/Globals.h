@@ -1,5 +1,6 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <random>
 class Globals
 {
 public:
@@ -11,5 +12,6 @@ public:
 	static int draw_delay; //Drawing delay in ms
 	static double node_radius;
 	static double edge_thickness;
+	static std::mt19937 random_generator;
 };
 
