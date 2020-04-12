@@ -102,7 +102,7 @@ double Solver::length_of_path(std::vector<int> order)
 }
 
 std::pair<std::vector<int>, double> Solver::solve_simulated_annealing(double initial_temperature,
-double temp_reduction_constant,double probability_constant, int opt2_rounds)
+double temp_reduction_constant,double probability_constant, int opt2_rounds,int number_of_neighbors)
 {
 	int permutation_length = graph.size();
 	std::vector<int> order_of_visiting(permutation_length);
@@ -117,9 +117,8 @@ double temp_reduction_constant,double probability_constant, int opt2_rounds)
 	int changes_accepted;
 	do
 	{
-		int number_of_changes = 10 * permutation_length;
 		changes_accepted = 0;
-		for (int i = 0; i < number_of_changes; i++)
+		for (int i = 0; i < number_of_neighbors; i++)
 		{
 			// Choose one neighboring state at random
 			int rand_index1 = rand() % permutation_length;
@@ -166,7 +165,6 @@ double temp_reduction_constant,double probability_constant, int opt2_rounds)
 					}
 				}
 			}
-
 			// Draw current order
 			graphics->update_graph(order_of_visiting, solution);
 			std::this_thread::sleep_for(std::chrono::milliseconds(Globals::draw_delay));
@@ -324,12 +322,7 @@ std::vector<std::vector<int>> Solver::generate_starting_population(int populatio
 	{
 		auto permutation = std::vector<int>(permutation_length);
 		std::iota(permutation.begin(), permutation.end(), 0);
-		/*for (int j = 0; j <= permutation_length - 2; j++)
-		{
-			int swap_position = j + rand() % (permutation_length - j);
-			std::swap(permutation[j], permutation[swap_position]);
-		}*/
-		std::shuffle(permutation.begin(),permutation.end(),Globals::random_generator);
+		std::shuffle(permutation.begin(),permutation.end(),Globals::random_generator.mersenne_twister);
 		population[i] = permutation;
 	}
 	return population;
@@ -362,7 +355,7 @@ std::vector<std::pair<int, int>> Solver::choose_mating_pairs(std::vector<std::ve
 	{
 		std::pair<int, int> mating_pair;
 		//Choose first parent following the distribution
-		double rand_double = rand() / (RAND_MAX * 1.0);
+		double rand_double = Globals::random_generator.get_double(0, 1);
 		for (int i = 0; i < probability_distribution.size(); i++)
 		{
 			if (rand_double >= probability_distribution[i] && rand_double < probability_distribution[i + 1])
@@ -372,7 +365,7 @@ std::vector<std::pair<int, int>> Solver::choose_mating_pairs(std::vector<std::ve
 			}
 		}
 		//Choose second parent
-		rand_double = rand() / (RAND_MAX * 1.0);
+		rand_double = Globals::random_generator.get_double(0, 1);
 		for (int i = 0; i < probability_distribution.size(); i++)
 		{
 			if (rand_double >= probability_distribution[i] && rand_double < probability_distribution[i + 1])
@@ -390,10 +383,8 @@ std::vector<int> crossover_parents(std::vector<int>* parent1, std::vector<int>* 
 {
 	//Initialize child and uniform distributions
 	std::vector<int> child(parent1->size());
-	std::uniform_int_distribution<int> uniform_distribution(0, parent1->size());
-	int starting_position = uniform_distribution(Globals::random_generator);
-	uniform_distribution = std::uniform_int_distribution<int>(min_length, max_length);
-	int length = uniform_distribution(Globals::random_generator);
+	int starting_position = Globals::random_generator.get_int(0, parent1->size()-1);
+	int length = Globals::random_generator.get_int(min_length,max_length-1);
 
 	//Copy part of parent1 permutation
 	std::unordered_set<int> taken_cities;
@@ -462,6 +453,17 @@ std::vector<int> Solver::optimize_genome_locally(std::vector<int> permutation, i
 	return permutation;
 }
 
+void Solver::mutate_genome(std::vector<int>* permutation, double mutation_rate)
+{
+	double rand_double = Globals::random_generator.get_double(0,1);
+	if (rand_double < mutation_rate)
+	{
+		int index0 = Globals::random_generator.get_int(0, permutation->size()-1);
+		int index1 = Globals::random_generator.get_int(0, permutation->size()-1);
+		std::swap(permutation->at(index0), permutation->at(index1));
+	}
+}
+
 std::pair<std::vector<int>, double> Solver::solve_genetic_algorithm(int population_size, int generations, double mutation_rate, double min_length_percentage, double max_length_percentage, int opt2_rounds)
 {
 	int max_length = graph.size() * max_length_percentage;
@@ -483,7 +485,9 @@ std::pair<std::vector<int>, double> Solver::solve_genetic_algorithm(int populati
 			auto parent2 = &current_population[mating_pairs[i].second];
 			auto child1 = crossover_parents(parent1, parent2, min_length, max_length);
 			auto child2 = crossover_parents(parent2, parent1, min_length, max_length);
-			
+			mutate_genome(&child1, mutation_rate);
+			mutate_genome(&child2, mutation_rate);
+
 			child1 = optimize_genome_locally(child1, opt2_rounds);
 			double child_path = length_of_path(child1);
 			if (child_path < best_path_len_in_generation)
@@ -512,6 +516,7 @@ std::pair<std::vector<int>, double> Solver::solve_genetic_algorithm(int populati
 		graphics->update_graph(best_perm_in_generation, best_permutation);
 		std::this_thread::sleep_for(std::chrono::milliseconds(Globals::draw_delay));
 		std::cout << "Iteration: " << generation_index << " Length: " << best_path_length << "\n";
+		current_population = new_population;
 	}
 	return std::pair<std::vector<int>, double>(best_permutation,best_path_length);
 }
