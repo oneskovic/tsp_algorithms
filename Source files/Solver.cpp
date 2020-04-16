@@ -32,21 +32,25 @@ std::vector<std::vector<double>> convert_points_to_graph(std::vector<sf::Vector2
 
 Solver::Solver(Graphics* graphics, std::vector<sf::Vector2f> points)
 {
+	should_draw = true;
 	graph = convert_points_to_graph(points);
 	this->graphics = graphics;
 }
-
-Solver::Solver(Graphics* graphics, std::vector<std::vector<double>> graph)
+Solver::Solver(Graphics* graphics, std::vector<std::vector<double>> input_graph)
 {
-	this->graph = graph;
+	should_draw = true;
+	graph = input_graph;
 	this->graphics = graphics;
 }
-
-Solver::Solver(Graphics* primary_graphics, Graphics* secondary_graphics, std::vector<sf::Vector2f> points)
+Solver::Solver(std::vector<std::vector<double>> input_graph)
 {
+	should_draw = false;
+	graph = input_graph;
+}
+Solver::Solver(std::vector<sf::Vector2f> points)
+{
+	should_draw = false;
 	graph = convert_points_to_graph(points);
-	this->graphics = graphics;
-	this->secondary_graphics = secondary_graphics;
 }
 
 std::pair<std::vector<int>, double> Solver::solve_bruteforce()
@@ -84,8 +88,11 @@ std::pair<std::vector<int>, double> Solver::solve_bruteforce()
 			minimal_total_weight = current_total_weight;
 			solution = std::vector<int>(order_of_visiting);
 		}
-		graphics->update_graph(order_of_visiting, solution);
-		std::this_thread::sleep_for(std::chrono::milliseconds(Globals::draw_delay));
+		if (should_draw)
+		{
+			graphics->update_graph(order_of_visiting, solution);
+			std::this_thread::sleep_for(std::chrono::milliseconds(Globals::draw_delay));
+		}
 	} while (std::next_permutation(order_of_visiting.begin(), order_of_visiting.end()));
 
 	auto order_and_distance = std::pair<std::vector<int>, int>(solution, minimal_total_weight);
@@ -121,8 +128,8 @@ double temp_reduction_constant,double probability_constant, int opt2_rounds,int 
 		for (int i = 0; i < number_of_neighbors; i++)
 		{
 			// Choose one neighboring state at random
-			int rand_index1 = rand() % permutation_length;
-			int rand_index2 = rand() % permutation_length;
+			int rand_index1 = Globals::random_generator.get_int(0,permutation_length-1);
+			int rand_index2 = Globals::random_generator.get_int(0, permutation_length-1);
 
 			//Reject the neighboring state if it is the same as the current state
 			if (rand_index1 != rand_index2)
@@ -135,9 +142,8 @@ double temp_reduction_constant,double probability_constant, int opt2_rounds,int 
 				//Perform 2-opt improvment on the neighbor
 				neighboring_state = optimize_genome_locally(neighboring_state, 2-opt2_rounds);
 
-				
 				// Choose random number between 0 and 1
-				double rand_double = rand() / (RAND_MAX * 1.0);
+				double rand_double = Globals::random_generator.get_double(0,1);
 				// Evaluate probability function of acceptance
 				double length_new = length_of_path(neighboring_state);
 				double length_difference = length_current - length_new;
@@ -165,9 +171,12 @@ double temp_reduction_constant,double probability_constant, int opt2_rounds,int 
 					}
 				}
 			}
-			// Draw current order
-			graphics->update_graph(order_of_visiting, solution);
-			std::this_thread::sleep_for(std::chrono::milliseconds(Globals::draw_delay));
+			if (should_draw)
+			{
+				// Draw current order
+				graphics->update_graph(order_of_visiting, solution);
+				std::this_thread::sleep_for(std::chrono::milliseconds(Globals::draw_delay));
+			}
 		}
 
 		std::cout << "Tmperature: " << temperature << " Accepted changees: " << changes_accepted << " Lenght: " << minimal_total_weight << "\n";
@@ -210,20 +219,10 @@ double Solver::total_pheromone_distance_product(std::vector<std::vector<double>>
 			total_sum += std::pow(pheromones_strength, alpha) * std::pow(heuristic_value,beta);
 		}
 	}
-	/*for (size_t i = 0; i < no_nodes; i++)
-	{
-		for (size_t j = 0; j < no_nodes; j++)
-		{
-			if (i != j)
-				total_sum += std::pow((*pheromone_graph)[i][j], alpha) * std::pow(1/graph[i][j],beta);
-		}
-	}*/
 	return total_sum;
 }
 
-/// <summary>
-/// 
-/// </summary>
+
 /// <param name="alpha">constant - pheromone importance</param>
 /// <param name="beta">constant - heuristic information importance</param>
 /// <param name="q"></param>
@@ -235,7 +234,7 @@ double Solver::total_pheromone_distance_product(std::vector<std::vector<double>>
 std::pair<std::vector<int>, double> Solver::solve_ant_colony_simulation(double alpha, double beta, double q, double evaporation_rate, int number_of_iterations, int swarm_size, double initial_pheromone_strength)
 {
 	int number_of_nodes = graph.size();
-	// Create pheromone graph with every edge equal to the initial pheromone strenght
+	/* Create pheromone graph with every edge equal to the initial pheromone strenght*/
 	auto pheromone_graph = std::vector<std::vector<double>>(number_of_nodes);
 	for (size_t i = 0; i < number_of_nodes; i++)
 		pheromone_graph[i] = std::vector<double>(number_of_nodes, initial_pheromone_strength);
@@ -251,7 +250,7 @@ std::pair<std::vector<int>, double> Solver::solve_ant_colony_simulation(double a
 			// Choose random starting node for an ant and add it to current permutation
 			current_permutation = std::vector<int>(); current_permutation.reserve(number_of_nodes);
 			auto visited_nodes = std::vector<bool>(number_of_nodes);
-			int current_node_index = rand() % number_of_nodes;
+			int current_node_index = Globals::random_generator.get_int(0, number_of_nodes-1);
 			current_permutation.push_back(current_node_index);
 			visited_nodes[current_node_index] = true;
 			while (current_permutation.size() < number_of_nodes)
@@ -263,7 +262,7 @@ std::pair<std::vector<int>, double> Solver::solve_ant_colony_simulation(double a
 				double sum_all_valid_combinations = total_pheromone_distance_product(&pheromone_graph,current_node_index, &visited_nodes, alpha, beta);
 				while (!changed_node)
 				{
-					double rand_double = rand() / (RAND_MAX * 1.0);
+					double rand_double = Globals::random_generator.get_double(0,1);
 					for (int neighbour_index = 0; neighbour_index < number_of_nodes; neighbour_index++)
 					{
 						double probability;
@@ -306,10 +305,13 @@ std::pair<std::vector<int>, double> Solver::solve_ant_colony_simulation(double a
 			}
 		}
 		update_pheromones(&pheromone_graph,&edge_pheromone_map, evaporation_rate);
-		// Draw current order
-		graphics->update_graph(current_permutation, solution);
-		std::this_thread::sleep_for(std::chrono::milliseconds(Globals::draw_delay));
-		std::cout << "Iteration: " << iteration << " Length: " << best_path_length << "\n";
+		if (should_draw)
+		{
+			// Draw current order
+			graphics->update_graph(current_permutation, solution);
+			std::this_thread::sleep_for(std::chrono::milliseconds(Globals::draw_delay));
+			std::cout << "Iteration: " << iteration << " Length: " << best_path_length << "\n";
+		}
 	}
 	return std::pair<std::vector<int>, double>(solution, best_path_length);
 }
@@ -513,8 +515,11 @@ std::pair<std::vector<int>, double> Solver::solve_genetic_algorithm(int populati
 			best_path_length = best_path_len_in_generation;
 			best_permutation = best_perm_in_generation;
 		}
-		graphics->update_graph(best_perm_in_generation, best_permutation);
-		std::this_thread::sleep_for(std::chrono::milliseconds(Globals::draw_delay));
+		if (should_draw)
+		{
+			graphics->update_graph(best_perm_in_generation, best_permutation);
+			std::this_thread::sleep_for(std::chrono::milliseconds(Globals::draw_delay));
+		}
 		std::cout << "Iteration: " << generation_index << " Length: " << best_path_length << "\n";
 		current_population = new_population;
 	}
