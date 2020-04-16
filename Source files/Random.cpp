@@ -6,7 +6,7 @@ Random::Random(size_t seed)
 }
 
 /// <summary>
-/// Produces a uniform random double in range [lower_bound,upper_bound)
+/// Produces a uniform random double in range [lower_bound,upper_bound]
 /// </summary>
 double Random::get_double(double lower_bound, double upper_bound)
 {
@@ -20,7 +20,7 @@ double Random::get_double(double lower_bound, double upper_bound)
 }
 
 /// <summary>
-/// Produces a uniform random integer in range [lower_bound,upper_bound)
+/// Produces a uniform random integer in range [lower_bound,upper_bound]
 /// </summary>
 int Random::get_int(int lower_bound, int upper_bound)
 {
@@ -31,4 +31,11 @@ int Random::get_int(int lower_bound, int upper_bound)
 		integer_distributions[interval] = std::uniform_int_distribution<int>(lower_bound, upper_bound);
 	}
 	return integer_distributions[interval](mersenne_twister);
+}
+
+sf::Vector2f Random::get_point(double min_x, double max_x, double min_y, double max_y)
+{
+	double x = get_double(min_x, max_x);
+	double y = get_double(min_y, max_y);
+	return sf::Vector2f(x,y);
 }
