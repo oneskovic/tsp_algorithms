@@ -25,6 +25,9 @@ At each step, we look at neighboring states of the current state (permutation) a
 If we find a better solution we accept it and continue the local search. <br>
 Else we accept the worse solution with some probability ![formula](https://render.githubusercontent.com/render/math?math=e^{\frac{dl}{c*T}})<br>
 (dl being the difference in path length, c being a probability constant and T the temperature)<br>
-After the local search is completed, the temperature is reduced and the algorithm is repeated either until there are no changes made or the temperature reaches a very low point.
+After the local search is completed, the temperature is reduced and the algorithm is repeated either until there are no changes made or the temperature reaches a very low point.<br>
+References: <br>
+S.Kirkpatrick et al. (1983) "Optimization by Simulated Annealing": [link](https://science.sciencemag.org/content/220/4598/671)
 
 #### 3. Genetic algorithm
+
