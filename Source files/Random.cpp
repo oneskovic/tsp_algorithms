@@ -39,3 +39,4 @@ sf::Vector2f Random::get_point(double min_x, double max_x, double min_y, double 
 	double y = get_double(min_y, max_y);
 	return sf::Vector2f(x,y);
 }
+

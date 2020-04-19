@@ -1,14 +1,15 @@
 #include "..\Header files\AntColonySimulation.h"
 
-AntColonySimulation::AntColonySimulation(double alpha, double beta, double q, double evaporation_rate, int number_of_iterations, int swarm_size, double initial_pheromone_strength)
+AntColonySimulation::AntColonySimulation(std::vector<double> parameters)
 {
-	this->alpha = alpha;
-	this->beta = beta;
-	this->q = q;
-	this->evaporation_rate = evaporation_rate;
-	this->number_of_iterations = number_of_iterations;
-	this->swarm_size = swarm_size;
-	this->initial_pheromone_strength = initial_pheromone_strength;
+	this->alpha = parameters[0];
+	this->beta = parameters[1];
+	this->q = parameters[2];
+	this->evaporation_rate = parameters[3];
+	this->number_of_iterations = parameters[4];
+	this->swarm_size = parameters[5];
+	this->initial_pheromone_strength = parameters[6];
+	this->parameters = parameters;
 }
 
 /// <param name="alpha">constant - pheromone importance</param>
@@ -94,10 +95,9 @@ std::pair<std::vector<int>, double> AntColonySimulation::solve(std::vector<std::
 			}
 		}
 		update_pheromones(&pheromone_graph, &edge_pheromone_map, evaporation_rate);
-		auto current_time = std::chrono::steady_clock::now();
-		log_solution(solution, best_path_length, current_time - start_time);
-		start_time = std::chrono::steady_clock::now();
 	}
+	auto current_time = std::chrono::steady_clock::now();
+	log_solution(solution, best_path_length, current_time - start_time);
 	return std::pair<std::vector<int>, double>(solution, best_path_length);
 }
 
