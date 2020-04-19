@@ -2,9 +2,11 @@
 #include "Header files/SimulatedAnnealing.h"
 #include "Header files/GeneticAlgorithm.h"
 #include "Header files/AntColonySimulation.h"
+#include "Header files/ParameterFinder.h"
 #include <chrono>
 #include <iostream>
 #include <random>
+
 std::vector<std::vector<double>> convert_points_to_graph(std::vector<sf::Vector2f> points)
 {
     int n = points.size();
@@ -34,18 +36,26 @@ std::vector<std::vector<double>> convert_points_to_graph(std::vector<sf::Vector2
     }
     return graph;
 }
+
 int main()
 {
-
     Globals::random_generator = Random();
-    int n = 100;
+    int n = 70;
     auto points = std::vector<sf::Vector2f>(n);
     for (size_t i = 0; i < n; i++)
-      points[i] = Globals::random_generator.get_point(0, Globals::window_width/2, 0, Globals::window_height);
+        points[i] = Globals::random_generator.get_point(0, Globals::window_width / 2, 0, Globals::window_height);
+
     
     Logger logger = Logger();
-    auto algorithm = AntColonySimulation();
+    auto algorithm = SimulatedAnnealing();
     algorithm.add_logger(&logger);
-    algorithm.solve(convert_points_to_graph(points));
+    //algorithm.solve(convert_points_to_graph(points));
+    
+    ParameterFinder pf = ParameterFinder(&algorithm);
+    std::vector<std::pair<double, double>> parameter_bounds_sa = { {0, 1000}, {0, 1}, {1, 1}, {0, 100}, {1, 100} };
+    pf.add_parameter_bounds(parameter_bounds_sa);
+    std::string output_path = "D:/Programming/TravellingSalesman/Benchmark/outputs/version3/outputs.txt";
+    std::string parameters_path = "D:/Programming/TravellingSalesman/Benchmark/outputs/version3/parameters.txt";
+    pf.find_parameters(500, 10, 70, output_path, parameters_path);
     return 0;
 }

@@ -12,6 +12,8 @@ class Solver
 {
 public:
 	void add_logger(Logger* logger);
+	virtual std::pair<std::vector<int>, double> solve(std::vector<std::vector<double>> graph) = 0;
+	std::vector<double> parameters;
 	/*Solver(Graphics* graphics, std::vector<sf::Vector2f> points);
 	Solver(Graphics* graphics, std::vector<std::vector<double>> input_graph);
 	Solver(std::vector<std::vector<double>> input_graph);

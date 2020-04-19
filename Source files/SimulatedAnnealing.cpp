@@ -1,12 +1,14 @@
 #include "..\Header files\SimulatedAnnealing.h"
 
-SimulatedAnnealing::SimulatedAnnealing(double initial_temperature, double temp_reduction_constant, double probability_constant, int opt2_rounds, int number_of_neighbors)
+SimulatedAnnealing::SimulatedAnnealing(std::vector<double> parameters)
 {
-	this->initial_temperature = initial_temperature;
-	this->temp_reduction_constant = temp_reduction_constant;
-	this->probability_constant = probability_constant;
-	this->opt2_rounds = opt2_rounds;
-	this->number_of_neighbors = number_of_neighbors;
+	this->initial_temperature = parameters[0];
+	this->temp_reduction_constant = parameters[1];
+	this->probability_constant = parameters[2];
+	this->opt2_rounds = parameters[3];
+	this->number_of_neighbors = parameters[4];
+
+	this->parameters = parameters;
 }
 
 std::pair<std::vector<int>, double> SimulatedAnnealing::solve(std::vector<std::vector<double>> graph)
@@ -74,13 +76,12 @@ std::pair<std::vector<int>, double> SimulatedAnnealing::solve(std::vector<std::v
 				}
 			}
 		}
-		auto current_time = std::chrono::steady_clock::now();
-		log_solution(order_of_visiting, length_current, current_time - start_time);
-		start_time = std::chrono::steady_clock::now();
 		// Reduce temperature
 		temperature *= temp_reduction_constant;
 	} while (changes_accepted > 0);
 
-	auto order_and_distance = std::pair<std::vector<int>, int>(solution, minimal_total_weight);
+	auto current_time = std::chrono::steady_clock::now();
+	log_solution(order_of_visiting, length_current, current_time - start_time);
+	auto order_and_distance = std::pair<std::vector<int>, double>(solution, minimal_total_weight);
 	return order_and_distance;
 }

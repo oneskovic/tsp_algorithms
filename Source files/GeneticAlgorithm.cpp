@@ -1,13 +1,15 @@
 #include "..\Header files\GeneticAlgorithm.h"
 
-GeneticAlgorithm::GeneticAlgorithm(int population_size, int generations, double mutation_rate, double min_length_percentage, double max_length_percentage, int opt2_rounds)
+GeneticAlgorithm::GeneticAlgorithm(std::vector<double> parameters)
 {
-	this->population_size = population_size;
-	this->generations = generations;
-	this->opt2_rounds = opt2_rounds;
-	this->mutation_rate = mutation_rate;
-	this->min_length_percentage = min_length_percentage;
-	this->max_length_percentage = max_length_percentage;
+	this->population_size = parameters[0];
+	this->generations = parameters[1];
+	this->opt2_rounds = parameters[2];
+	this->mutation_rate = parameters[3];
+	this->min_length_percentage = parameters[4];
+	this->max_length_percentage = parameters[5];
+
+	this->parameters = parameters;
 }
 
 std::vector<std::vector<int>> GeneticAlgorithm::generate_starting_population(int population_size)
@@ -172,10 +174,11 @@ std::pair<std::vector<int>, double> GeneticAlgorithm::solve(std::vector<std::vec
 			best_path_length = best_path_len_in_generation;
 			best_permutation = best_perm_in_generation;
 		}
-		auto current_time = std::chrono::steady_clock::now();
-		log_solution(best_permutation, best_path_length, current_time - start_time);
-		start_time = std::chrono::steady_clock::now();
+
 		current_population = new_population;
 	}
+
+	auto current_time = std::chrono::steady_clock::now();
+	log_solution(best_permutation, best_path_length, current_time - start_time);
 	return std::pair<std::vector<int>, double>(best_permutation, best_path_length);
 }
